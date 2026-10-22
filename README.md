@@ -31,8 +31,8 @@ git clone https://github.com/JacobT2006/CS366-Project.git
 cd CS366-Project
 ```
 
-### 2. Sync
-Before starting work, sync your local copy with the repository:
+### 2. Sync <!--Working on auto sync when running project -->
+Before starting work, sync your local copy with the repository: 
 ```bash
 git pull
 ```
