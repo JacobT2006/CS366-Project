@@ -31,7 +31,21 @@ git clone https://github.com/JacobT2006/CS366-Project.git
 cd CS366-Project
 ```
 
-<!-- ### 2. Run the application
+### 2. Sync
+Before starting work, sync your local copy with the repository:
+```bash
+git pull
+```
+
+### 3. Commit and push changes
+After making changes, stage and commit them, then push your commit:
+```bash
+git add .
+git commit -m "Describe your changes"
+git push
+```
+
+<!-- ### 3. Run the application
 ```bash
 python frontEnd.py
 ```
