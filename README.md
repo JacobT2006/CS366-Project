@@ -1,2 +1,47 @@
-# CS366-Project
-Project for class database management at UWW
+# CS366 Project
+
+Database management project for the UWW CS366 course.
+
+## Overview
+This project is a Python-based database management application designed to demonstrate the core concepts of database design, data handling, and software structure in a classroom setting. The repository is organized into a simple frontend/backend layout to separate user interaction from database logic.
+
+## Project Structure
+- `frontEnd.py` - user-facing interface and interaction layer
+- `backEnd.py` - backend/database logic and processing
+- `README.md` - project overview and setup instructions
+- `LICENSE` - MIT license information
+
+## Key Goals
+- Build a working database-focused application in Python
+- Separate frontend and backend responsibilities
+- Demonstrate database management principles learned in class
+- Provide a clean and reusable project structure for further development
+
+## Features
+- Python application structure
+- Frontend/backend separation
+- Database management project foundation
+- Easy to extend with additional database operations and UI features
+
+## Getting Started
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/JacobT2006/CS366-Project.git
+cd CS366-Project
+```
+
+<!-- ### 2. Run the application
+```bash
+python frontEnd.py
+```
+If the backend logic is intended to be run independently:
+```bash
+python backEnd.py
+``` -->
+
+## Notes
+This repository provides the foundation for a database management project and can be expanded with tables, queries, and additional functionality as the course progresses.
+
+## License
+This project is licensed under the MIT License. See the `LICENSE` file for details.
