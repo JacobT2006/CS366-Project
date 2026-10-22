@@ -45,14 +45,12 @@ git commit -m "Describe your changes"
 git push
 ```
 
-<!-- ### 3. Run the application
+### 3. Run the application
+inside the directory for this project
 ```bash
-python frontEnd.py
-```
-If the backend logic is intended to be run independently:
-```bash
-python backEnd.py
-``` -->
+chmod u+x runScript.sh 
+./runScript.sh
+``` 
 
 ## Notes
 This repository provides the foundation for a database management project and can be expanded with tables, queries, and additional functionality as the course progresses.
