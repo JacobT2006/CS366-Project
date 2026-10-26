@@ -45,7 +45,14 @@ git commit -m "Describe your changes"
 git push
 ```
 
-### 3. Run the application
+### 4. Virtual enviroment
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install <application name>
+```
+
+### 5. Run the application
 inside the directory for this project
 ```bash
 chmod u+x runScript.sh 

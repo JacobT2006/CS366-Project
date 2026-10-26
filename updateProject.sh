@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+echo "---------------------------------------------------------------------------"
 set -euo pipefail
 
 REPO_URL="https://github.com/JacobT2006/CS366-Project.git"
@@ -24,3 +24,4 @@ fi
 echo "Fetching latest changes for '$BRANCH'..."
 git -C "$PROJECT_DIR" pull --ff-only origin "$BRANCH"
 echo "Sync complete."
+echo "---------------------------------------------------------------------------"
