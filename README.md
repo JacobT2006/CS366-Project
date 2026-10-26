@@ -1,66 +1,49 @@
 # CS366 Project
 
-Database management project for the UWW CS366 course.
+A work in progress for the University of Wisconsin–Whitewater CS366 course. The repository is intended to become a Python application backed by MariaDB, but the application itself has not been implemented yet.
 
-## Overview
-This project is a Python-based database management application designed to demonstrate the core concepts of database design, data handling, and software structure in a classroom setting. The repository is organized into a simple frontend/backend layout to separate user interaction from database logic.
+## Project files
 
-## Project Structure
-- `frontEnd.py` - user-facing interface and interaction layer
-- `backEnd.py` - backend/database logic and processing
-- `README.md` - project overview and setup instructions
-- `LICENSE` - MIT license information
+- `frontEnd.py` — frontend placeholder; no interface is implemented yet.
+- `backEnd.py` — backend placeholder; no database operations are implemented yet.
+- `runScript.sh` — checks the required command line tools and then runs `updateProject.sh`.
+- `updateProject.sh` — sets the Git `origin` remote to this project’s GitHub URL and pulls the current branch using fast-forward only.
+- `LICENSE` — MIT License.
 
-## Key Goals
-- Build a working database-focused application in Python
-- Separate frontend and backend responsibilities
-- Demonstrate database management principles learned in class
-- Provide a clean and reusable project structure for further development
+## Requirements
 
-## Features
-- Python application structure
-- Frontend/backend separation
-- Database management project foundation
-- Easy to extend with additional database operations and UI features
+The launcher currently requires:
 
-## Getting Started
+- Python 3.15.0 or newer (`python3`)
+- MariaDB command line client (`mariadb`)
+- Git
 
-### 1. Clone the repository
+The Python and MariaDB checks are performed by `runScript.sh`. Git is needed by the update script. The launcher does not install any of these tools or configure a MariaDB server/database.
+
+## Run the launcher
+
+From the project directory, run:
+
 ```bash
-git clone https://github.com/JacobT2006/CS366-Project.git
-cd CS366-Project
+chmod u+x runScript.sh
+./runScript.sh
 ```
 
-### 2. Sync <!--Working on auto sync when running project -->
-Before starting work, sync your local copy with the repository: 
-```bash
-git pull
-```
+The launcher checks Python and MariaDB versions/availability, makes `updateProject.sh` executable, and runs it. The update script changes the repository’s `origin` URL to `https://github.com/JacobT2006/CS366-Project.git`, then pulls the current branch with `--ff-only`. Run it from a Git checkout with a named branch and a working network connection. If the local branch cannot be fast-forwarded, Git stops the update.
 
-### 3. Commit and push changes
-After making changes, stage and commit them, then push your commit:
-```bash
-git add .
-git commit -m "Describe your changes"
-git push
-```
+After syncing, the launcher currently has no application command to run. The frontend and backend need implementation before this repository can be used as a database application.
 
-### 4. Virtual enviroment
+## Development setup
+
+Create and activate a virtual environment if you plan to add Python dependencies:
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install <application name>
 ```
 
-### 5. Run the application
-inside the directory for this project
-```bash
-chmod u+x runScript.sh 
-./runScript.sh
-``` 
-
-## Notes
-This repository provides the foundation for a database management project and can be expanded with tables, queries, and additional functionality as the course progresses.
+Install dependencies as they are added to the project. There is not currently a dependency manifest or a configured database schema.
 
 ## License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+This project is distributed under the MIT License. See [`LICENSE`](LICENSE).
