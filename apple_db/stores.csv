@@ -1,0 +1,76 @@
+Store_ID,Store_Name,City,Country
+ST-1,Apple Fifth Avenue,New York,United States
+ST-2,Apple Union Square,San Francisco,United States
+ST-3,Apple Michigan Avenue,Chicago,United States
+ST-4,Apple The Grove,Los Angeles,United States
+ST-5,Apple SoHo,New York,United States
+ST-6,Apple Grand Central,New York,United States
+ST-7,Apple Beverly Center,Los Angeles,United States
+ST-8,Apple Pioneer Place,Portland,United States
+ST-9,Apple Park Visitor Center,Cupertino,United States
+ST-10,Apple South Coast Plaza,Costa Mesa,United States
+ST-11,Apple Ala Moana,Honolulu,United States
+ST-12,Apple North Michigan Avenue,Chicago,United States
+ST-13,Apple Walnut Street,Philadelphia,United States
+ST-14,Apple The Americana at Brand,Glendale,United States
+ST-15,Apple Downtown Brooklyn,Brooklyn,United States
+ST-16,Apple Regent Street,London,United Kingdom
+ST-17,Apple Covent Garden,London,United Kingdom
+ST-18,Apple Champs-Elysees,Paris,France
+ST-19,Apple Opera,Paris,France
+ST-20,Apple Kaerntner Strasse,Vienna,Austria
+ST-21,Apple Passeig de Gracia,Barcelona,Spain
+ST-22,Apple Piazza Liberty,Milan,Italy
+ST-23,Apple Via del Corso,Rome,Italy
+ST-24,Apple Kurfuerstendamm,Berlin,Germany
+ST-25,Apple Schildergasse,Cologne,Germany
+ST-26,Apple Leidseplein,Amsterdam,Netherlands
+ST-27,Apple Rosenstrasse,Munich,Germany
+ST-28,Apple Brompton Road,London,United Kingdom
+ST-29,Apple Galeries Lafayette,Paris,France
+ST-30,Apple Dubai Mall,Dubai,UAE
+ST-31,Apple Shinjuku,Tokyo,Japan
+ST-32,Apple Omotesando,Tokyo,Japan
+ST-33,Apple Marunouchi,Tokyo,Japan
+ST-34,Apple Fukuoka,Fukuoka,Japan
+ST-35,Apple Shanghai IFC,Shanghai,China
+ST-36,Apple Nanjing East,Shanghai,China
+ST-37,Apple Sanlitun,Beijing,China
+ST-38,Apple Taikoo Li,Chengdu,China
+ST-39,Apple Taipei 101,Taipei,Taiwan
+ST-40,Apple Causeway Bay,Hong Kong,China
+ST-41,Apple Central World,Bangkok,Thailand
+ST-42,Apple Orchard Road,Singapore,Singapore
+ST-43,Apple Cotai Central,Macau,China
+ST-44,Apple Kyoto,Kyoto,Japan
+ST-45,Apple Jewel Changi Airport,Singapore,Singapore
+ST-46,Apple Eaton Centre,Toronto,Canada
+ST-47,Apple Rideau Centre,Ottawa,Canada
+ST-48,Apple Sainte-Catherine,Montreal,Canada
+ST-49,Apple Yorkdale,Toronto,Canada
+ST-50,Apple Metrotown,Burnaby,Canada
+ST-51,Apple Sydney,Sydney,Australia
+ST-52,Apple Chadstone,Melbourne,Australia
+ST-53,Apple Brisbane,Brisbane,Australia
+ST-54,Apple Bondi,Bondi,Australia
+ST-55,Apple Highpoint,Melbourne,Australia
+ST-56,Apple Southland,Cheltenham,Australia
+ST-57,Apple Yas Mall,Abu Dhabi,UAE
+ST-58,Apple The Dubai Mall,Dubai,UAE
+ST-59,Apple Mall of the Emirates,Dubai,UAE
+ST-60,Apple Antara,Mexico City,Mexico
+ST-61,Apple Santa Fe,Mexico City,Mexico
+ST-62,Apple Via Santa Fe,Mexico City,Mexico
+ST-63,Apple Parque La Colina,Bogota,Colombia
+ST-64,Apple Andino,Bogota,Colombia
+ST-65,Apple Iconsiam,Bangkok,Thailand
+ST-66,Apple Orchard Road,Singapore,Singapore
+ST-67,Apple Chadstone,Melbourne,Australia
+ST-68,Apple Champs-Elysees,Paris,France
+ST-69,Apple The Dubai Mall,Dubai,UAE
+ST-70,Apple Gangnam,Seoul,South Korea
+ST-71,Apple Yeouido,Seoul,South Korea
+ST-72,Apple Kumamoto,Kumamoto,Japan
+ST-73,Apple Covent Garden,London,United Kingdom
+ST-74,Apple Central World,Bangkok,Thailand
+ST-75,Apple Beijing SKP,Beijing,China
