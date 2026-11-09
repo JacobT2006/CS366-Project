@@ -9,6 +9,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 update=0
 open_db=0
+schema_skipped=0
+allow_data_load=1
 
 # Read supported command-line options.
 for argument in "$@"; do
@@ -50,10 +52,10 @@ fi
 # Optionally synchronize this checkout before database work.
 if [ "$update" -eq 1 ]; then
     if [ ! -f updateProject.sh ]; then
-        echo "updateProject.sh was not found." >&2
-        exit 1
+        echo "Warning: updateProject.sh was not found; continuing without update." >&2
+    elif ! bash ./updateProject.sh; then
+        echo "Warning: update failed; continuing with the current checkout." >&2
     fi
-    bash ./updateProject.sh
 fi
 
 # Optionally open a MariaDB CLI session with the private .env settings.
@@ -89,7 +91,7 @@ os.execv(client, [
 fi
 
 # Inspect project tables before offering to run the destructive DDL script.
-project_table_count=$("$python_bin" -c '
+if project_table_count=$("$python_bin" -c '
 from dotenv import load_dotenv
 load_dotenv()
 from load_data import PROJECT_TABLES, connect, existing_project_tables
@@ -99,7 +101,13 @@ try:
     print(len(existing_project_tables(connection)))
 finally:
     connection.close()
-')
+') ; then
+    schema_check_ok=1
+else
+    echo "Warning: could not check project tables; continuing to the front end." >&2
+    schema_check_ok=0
+    allow_data_load=0
+fi
 project_table_total=10
 
 run_schema_sql() {
@@ -134,40 +142,73 @@ with open(sys.argv[1], "rb") as source:
 ' "$sql_file"
 }
 
-if [ "$project_table_count" -eq 0 ]; then
+if [ "$schema_check_ok" -eq 1 ] && [ "$project_table_count" -eq 0 ]; then
     echo "No project tables found. Creating project tables..."
-    run_schema_sql InsertTables.sql
-    run_schema_sql stored_procedures.sql
-elif [ "$project_table_count" -eq "$project_table_total" ]; then
+    if run_schema_sql InsertTables.sql && run_schema_sql stored_procedures.sql; then
+        echo "Project schema is ready."
+    else
+        echo "Warning: schema setup failed; continuing to the front end." >&2
+        allow_data_load=0
+    fi
+elif [ "$schema_check_ok" -eq 1 ] && [ "$project_table_count" -eq "$project_table_total" ]; then
     echo "Found all $project_table_total project tables."
     read -r -p "Skip InsertTables.sql? [Y/n] " skip_schema
     case "$skip_schema" in
-        ""|y|Y|yes|YES) echo "Skipping InsertTables.sql." ;;
+        ""|y|Y|yes|YES)
+            schema_skipped=1
+            echo "Skipping InsertTables.sql."
+            ;;
         n|N|no|NO)
             read -r -p "Rebuilding drops and recreates project tables and deletes their data. Continue? [y/N] " rebuild_schema
             case "$rebuild_schema" in
                 y|Y|yes|YES)
-                    run_schema_sql InsertTables.sql
-                    run_schema_sql stored_procedures.sql
+                    if ! run_schema_sql InsertTables.sql || ! run_schema_sql stored_procedures.sql; then
+                        echo "Warning: schema rebuild failed; continuing to the front end." >&2
+                        allow_data_load=0
+                    fi
                     ;;
-                *) echo "Keeping existing project tables." ;;
+                *)
+                    schema_skipped=1
+                    echo "Keeping existing project tables."
+                    ;;
             esac
             ;;
         *) echo "Please answer yes or no." >&2; exit 2 ;;
     esac
 else
-    echo "Found $project_table_count of $project_table_total project tables."
-    read -r -p "Rebuild all project tables? This drops existing project data. [y/N] " rebuild_schema
-    case "$rebuild_schema" in
-        y|Y|yes|YES)
-            run_schema_sql InsertTables.sql
-            run_schema_sql stored_procedures.sql
-            ;;
-        *) echo "Cannot continue with a partial schema; no tables were changed." >&2; exit 1 ;;
-    esac
+    if [ "$schema_check_ok" -eq 1 ]; then
+        echo "Found $project_table_count of $project_table_total project tables."
+        read -r -p "Rebuild all project tables? This drops existing project data. [y/N] " rebuild_schema
+        case "$rebuild_schema" in
+            y|Y|yes|YES)
+                if ! run_schema_sql InsertTables.sql || ! run_schema_sql stored_procedures.sql; then
+                    echo "Warning: schema rebuild failed; continuing to the front end." >&2
+                    allow_data_load=0
+                fi
+                ;;
+            *)
+                echo "Keeping partial schema; CSV loading skipped."
+                allow_data_load=0
+                ;;
+        esac
+    fi
 fi
 
 # Import data if needed, then start the interactive application.
 echo "Checking CSV data load..."
-"$python_bin" load_data.py
+if [ "$allow_data_load" -eq 0 ]; then
+    echo "Skipping CSV load because database setup did not complete."
+elif [ "$schema_skipped" -eq 1 ]; then
+    read -r -p "Reloading CSVs clears and replaces project-table data, including manual changes. Overwrite with CSV data? [y/N] " overwrite_data
+    case "$overwrite_data" in
+        y|Y|yes|YES)
+            if ! "$python_bin" load_data.py --force; then
+                echo "Warning: CSV reload failed; starting the front end anyway." >&2
+            fi
+            ;;
+        *) echo "Keeping existing project data; CSV reload skipped." ;;
+    esac
+elif ! "$python_bin" load_data.py; then
+    echo "Warning: CSV load failed; starting the front end anyway." >&2
+fi
 exec "$python_bin" frontEnd.py

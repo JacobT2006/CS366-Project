@@ -127,6 +127,7 @@ def insert_rows(
     connection: Any,
     statement: str,
     rows: Iterable[Sequence[Any]],
+    progress_label: str | None = None,
 ) -> int:
     """Insert rows in batches and return the number inserted."""
     batch: list[Sequence[Any]] = []
@@ -134,13 +135,27 @@ def insert_rows(
     for row in rows:
         batch.append(row)
         if len(batch) == BATCH_SIZE:
-            cursor.executemany(statement, batch)
-            connection.commit()
+            try:
+                cursor.executemany(statement, batch)
+                connection.commit()
+            except Exception as error:
+                label = progress_label or "dataset"
+                raise RuntimeError(
+                    f"Failed loading {label} near row {count + len(batch):,}: {error}"
+                ) from error
             count += len(batch)
             batch.clear()
+            if progress_label and count % 100_000 == 0:
+                print(f"Loaded {count:,} {progress_label} rows...", flush=True)
     if batch:
-        cursor.executemany(statement, batch)
-        connection.commit()
+        try:
+            cursor.executemany(statement, batch)
+            connection.commit()
+        except Exception as error:
+            label = progress_label or "dataset"
+            raise RuntimeError(
+                f"Failed loading {label} near row {count + len(batch):,}: {error}"
+            ) from error
         count += len(batch)
     return count
 
@@ -341,6 +356,8 @@ def load_dataset(connection: Any, force: bool = False) -> dict[str, int]:
         print(f"Dataset already loaded ({existing[0]} source rows). Use --force to reload.")
         return {}
 
+    if force:
+        print("Clearing existing project data before CSV reload...", flush=True)
     clear_dataset(cursor, connection)
     counts: dict[str, int] = {}
 
@@ -383,12 +400,14 @@ def load_dataset(connection: Any, force: bool = False) -> dict[str, int]:
         connection,
         "INSERT INTO sales (sale_id, sale_date, store_id) VALUES (?, ?, ?)",
         sale_headers(),
+        progress_label="sales",
     )
     counts["sale_items"] = insert_rows(
         cursor,
         connection,
         "INSERT INTO sale_items (sale_id, product_id, quantity) VALUES (?, ?, ?)",
         sale_items(),
+        progress_label="sale items",
     )
     counts["warranty_cases"] = load_warranties(cursor, connection)
 
@@ -520,7 +539,7 @@ def main(argv: list[str] | None = None) -> int:
             counts = load_dataset(connection, force=args.force)
         finally:
             connection.close()
-    except (OSError, ValueError, RuntimeError) as error:
+    except Exception as error:
         print(f"Data load failed: {error}", file=sys.stderr)
         return 1
 
