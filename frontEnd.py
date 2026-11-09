@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal, InvalidOperation
+import os
 from typing import Any, Sequence
+
+from dotenv import load_dotenv
 
 from backEnd import (
     add_product,
@@ -20,6 +23,14 @@ from backEnd import (
     update_product_price,
     update_warranty_status,
 )
+
+# Connection settings live in the untracked .env file; see .env.example.
+load_dotenv()
+DATABASE_HOST = os.getenv("DATABASE_HOST", "127.0.0.1")
+DATABASE_PORT = int(os.getenv("DATABASE_PORT", "3307"))
+DATABASE_NAME = os.getenv("DATABASE_NAME", "retailInfo_db")
+DATABASE_USERNAME = os.getenv("DATABASE_USERNAME", "")
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
 
 
 def prompt(label: str) -> str:
@@ -228,7 +239,16 @@ def main() -> int:
         return 1
 
     try:
-        connection = connect()
+        if not 1 <= DATABASE_PORT <= 65535:
+            print("Invalid database connection setting: port must be between 1 and 65535.")
+            return 1
+        connection = connect(
+            host=DATABASE_HOST,
+            port=DATABASE_PORT,
+            database=DATABASE_NAME,
+            user=DATABASE_USERNAME,
+            password=DATABASE_PASSWORD,
+        )
     except mariadb.Error as error:
         print(f"Could not connect to MariaDB: {error}")
         return 1

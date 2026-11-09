@@ -53,7 +53,7 @@ For the checkpoint submission, create your own Word or PDF document. Copy the sc
 7. Update a warranty claim status.
 8. View a store/year sales summary.
 
-The application account is local to this development database. The sample credentials in `createDB.sql` are for coursework use only; change them before exposing the database to a network.
+Copy `.env.example` to `.env` and enter the database connection settings there. The `.env` file is ignored by Git. Use the remote server's reachable hostname/IP and port, and ensure its network rules and database grants allow the client. Leave `DATABASE_PASSWORD` empty if the server does not require one. The remote database must already contain this project's schema, stored procedures, and data; the application connects to it and runs its normal reports and operations. The sample credentials in `createDB.sql` are for coursework use only; change them before exposing the database to a network.
 
 ## Data and schema notes
 
