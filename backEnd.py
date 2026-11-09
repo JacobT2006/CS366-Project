@@ -21,19 +21,15 @@ def connect(
         ) from error
 
     connection_options: dict[str, Any] = {
-        "user": user if user is not None else os.environ.get("dbUser", "retail_app"),
-        "database": database if database is not None else os.environ.get("db_name", "retailInfo_db"),
+        "user": user if user is not None else os.environ.get("DATABASE_USERNAME", ""),
+        "database": database if database is not None else os.environ.get("DATABASE_NAME", "retailInfo_db"),
         "connect_timeout": 10,
     }
-    selected_password = password if password is not None else os.environ.get("DB_PASSWORD")
+    selected_password = password if password is not None else os.environ.get("DATABASE_PASSWORD")
     if selected_password:
         connection_options["password"] = selected_password
-    socket_path = os.environ.get("dbSocket") if host is None else None
-    if socket_path:
-        connection_options["unix_socket"] = socket_path
-    else:
-        connection_options["host"] = host or os.environ.get("dbHost", "127.0.0.1")
-        connection_options["port"] = port if port is not None else int(os.environ.get("port", "3307"))
+    connection_options["host"] = host or os.environ.get("DATABASE_HOST", "127.0.0.1")
+    connection_options["port"] = port if port is not None else int(os.environ.get("DATABASE_PORT", "3307"))
     return mariadb.connect(**connection_options)
 
 

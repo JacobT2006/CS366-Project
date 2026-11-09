@@ -11,7 +11,6 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Sequence
 
-
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "apple_db"
 BATCH_SIZE = 5_000
@@ -276,6 +275,14 @@ def load_warranties(cursor: Any, connection: Any) -> int:
 
 def connect() -> Any:
     try:
+        from dotenv import load_dotenv
+    except ImportError as error:
+        raise RuntimeError(
+            "python-dotenv is missing. Run: python3 -m pip install -r requirements.txt"
+        ) from error
+    load_dotenv()
+
+    try:
         import mariadb
     except ImportError as error:
         raise RuntimeError(
@@ -283,17 +290,15 @@ def connect() -> Any:
         ) from error
 
     connection_options: dict[str, Any] = {
-        "user": os.environ.get("dbUser", "retail_app"),
-        "password": os.environ.get("DB_PASSWORD", "retail_pass"),
-        "database": os.environ.get("db_name", "retailInfo_db"),
+        "user": os.environ.get("DATABASE_USERNAME", ""),
+        "database": os.environ.get("DATABASE_NAME", "retailInfo_db"),
         "connect_timeout": 10,
     }
-    socket_path = os.environ.get("dbSocket")
-    if socket_path:
-        connection_options["unix_socket"] = socket_path
-    else:
-        connection_options["host"] = os.environ.get("dbHost", "127.0.0.1")
-        connection_options["port"] = int(os.environ.get("port", "3307"))
+    password = os.environ.get("DATABASE_PASSWORD")
+    if password:
+        connection_options["password"] = password
+    connection_options["host"] = os.environ.get("DATABASE_HOST", "127.0.0.1")
+    connection_options["port"] = int(os.environ.get("DATABASE_PORT", "3307"))
     return mariadb.connect(**connection_options)
 
 

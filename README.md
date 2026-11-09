@@ -11,7 +11,7 @@ This project is a working MariaDB-backed application for the Apple retail datase
 - `stored_procedures.sql` — product search, sale entry, updates, and store reporting procedures.
 - `backEnd.py`, `frontEnd.py` — database operations and interactive terminal interface.
 - `tests/` — database-independent parser and query-catalog tests.
-- `runScript.sh` — initializes the local MariaDB server and prepares/runs the app.
+- `runScript.sh` — selects the project Python environment and runs the app.
 
 ## Requirements and setup (WSL/Ubuntu)
 
@@ -20,23 +20,26 @@ The launcher is a Bash script and is intended to be run in Linux or WSL, not dir
 ```bash
 cd /mnt/c/Git/CS366-Project
 sudo apt update
-sudo apt install python3 python3-dev python3-venv python3-pip mariadb-server mariadb-client libmariadb-dev build-essential pkg-config
+sudo apt install python3 python3-dev python3-venv python3-pip libmariadb-dev build-essential pkg-config
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -r requirements.txt
-./runScript.sh --reset
+cp .env.example .env
+# Edit .env with your database connection settings.
+./runScript.sh
 ```
 
-The project requires Python 3.8 or newer and MariaDB server/client tools. The launcher automatically uses `.venv/bin/python` when present, so activating the environment is optional. The first run initializes a local MariaDB data directory under `~/.local/share/retailInfo_db` (or `$XDG_DATA_HOME` if set), creates the application account, creates the schema, loads the CSV data, installs the stored procedures, and opens the interface. The project's server listens on `127.0.0.1:3307` by default, avoiding the usual system MariaDB port; set `DB_PORT` to change it. Its data files remain outside the Windows-mounted checkout.
+The project requires Python 3.8 or newer and MariaDB Connector/Python. The launcher automatically uses `.venv/bin/python` when present, so activating the environment is optional. Configure `.env` with a reachable MariaDB database that already has this project's schema, stored procedures, and data. The launcher does not start, stop, or configure a database server.
 
 The dataset includes 1,040,200 sales, 30,000 warranty claims, 89 products, 75 stores, 10 categories, and 16 years of Apple financial data. The annual financial CSV reports monetary values in millions; the loader preserves those source units.
 
 ### Common commands
 
 ```bash
-./runScript.sh               # Start the app; imports CSVs once if needed
-./runScript.sh --reset       # Recreate all tables and reload every CSV
-./runScript.sh stop          # Stop this project's local MariaDB server
+./runScript.sh               # Run the app using the configured database
+./runScript.sh --update      # Pull project changes, then run the app
+python load_data.py          # Load CSV data into a prepared, empty schema
+python load_data.py --force  # Clear and reload the CSV data
 python -m unittest discover -s tests
 ```
 
@@ -59,7 +62,7 @@ Copy `.env.example` to `.env` and enter the database connection settings there. 
 
 The sales CSV has one product per uniquely identified sale row. The importer stores each record as a `sales` header and a matching `sale_items` row. Warranty CSV rows contain a sale ID but no product ID, so the loader joins through `sale_items` when populating `warranty_cases`. CSV imports are batch-inserted and marked in `dataset_imports` so ordinary launches do not reload the large sales file.
 
-The schema includes primary and foreign keys, uniqueness and not-null constraints, and nonnegative price/positive quantity checks. `--reset` is destructive to data stored in this project's database.
+The schema includes primary and foreign keys, uniqueness and not-null constraints, and nonnegative price/positive quantity checks.
 
 ## Checkpoint 3 document checklist
 
