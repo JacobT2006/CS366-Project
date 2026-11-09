@@ -1,5 +1,3 @@
-USE cs366-2267_toepferj14
-
 -- Drop in child-to-parent order so the script can be re-run
 -- Import marker prevents loading the large CSV dataset twice.
 DROP TABLE IF EXISTS dataset_imports;

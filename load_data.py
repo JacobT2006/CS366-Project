@@ -15,6 +15,18 @@ ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "apple_db"
 BATCH_SIZE = 5_000
 DATASET_NAME = "apple_db"
+PROJECT_TABLES = (
+    "categories",
+    "stores",
+    "products",
+    "sales",
+    "sale_items",
+    "warranty_cases",
+    "year_sales",
+    "year_financials",
+    "store_sales",
+    "dataset_imports",
+)
 
 
 def parse_decimal(value: str | None) -> Decimal | None:
@@ -303,6 +315,20 @@ def clear_dataset(cursor: Any, connection: Any) -> None:
     connection.commit()
 
 
+def existing_project_tables(connection: Any) -> set[str]:
+    placeholders = ", ".join("?" for _ in PROJECT_TABLES)
+    cursor = connection.cursor()
+    try:
+        cursor.execute(
+            f"SELECT table_name FROM information_schema.tables "
+            f"WHERE table_schema = DATABASE() AND table_name IN ({placeholders})",
+            PROJECT_TABLES,
+        )
+        return {row[0] for row in cursor.fetchall()}
+    finally:
+        cursor.close()
+
+
 def load_dataset(connection: Any, force: bool = False) -> dict[str, int]:
     """Import all CSV datasets unless already loaded and not forced."""
     cursor = connection.cursor()
@@ -466,7 +492,7 @@ def connect() -> Any:
     connection_options["host"] = host
     connection_options["port"] = port
     connection = mariadb.connect(**connection_options)
-    print(f"Connected to MariaDB at {host}:{port}/{database}.")
+    print(f"Connected to MariaDB at {host}:{port}/{database}.", file=sys.stderr)
     return connection
 
 

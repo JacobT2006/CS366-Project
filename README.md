@@ -33,7 +33,7 @@ cp .env.example .env
 ./runScript.sh
 ```
 
-The project requires Python 3.8 or newer and MariaDB Connector/Python. The launcher automatically uses `.venv/bin/python` when present, so activating the environment is optional. Set `DATABASE_NAME` to the schema provided for your account and ensure `DATABASE_USERNAME` has access to it. Run `InsertTables.sql` and `stored_procedures.sql` against that schema before launching the app.
+The project requires Python 3.8 or newer and MariaDB Connector/Python. The launcher automatically uses `.venv/bin/python` when present, so activating the environment is optional. Set `DATABASE_NAME` to the schema provided for your account and ensure `DATABASE_USERNAME` has access to it. At startup, the launcher checks for all ten project tables. It creates the tables and installs the stored procedures if none exist; if all are present, it asks whether to skip `InsertTables.sql`. Rebuilding drops and recreates the project tables and deletes their data. A partial schema requires confirmation before rebuilding.
 
 The dataset includes 1,040,200 sales, 30,000 warranty claims, 89 products, 75 stores, 10 categories, and 16 years of Apple financial data. The annual financial CSV reports monetary values in millions; the loader preserves those source units.
 
@@ -64,7 +64,7 @@ For the checkpoint submission, create your own Word or PDF document. Copy the sc
 7. Update a warranty claim status.
 8. View a store/year sales summary.
 
-Copy `.env.example` to `.env` and enter the database host, port, name, username, and password. The `.env` file is ignored by Git. Use the remote server's reachable hostname/IP and port, and ensure its network rules and database grants allow the client. Leave `DATABASE_PASSWORD` empty if the server does not require one. The remote database must already contain this project's schema, stored procedures, and data; the application connects to it and runs its normal reports and operations. The sample credentials in `createDB.sql` are for coursework use only; change them before exposing the database to a network.
+Copy `.env.example` to `.env` and enter the database host, port, name, username, and password. The `.env` file is ignored by Git. Use the remote server's reachable hostname/IP and port, and ensure its network rules and database grants allow the client. Leave `DATABASE_PASSWORD` empty if the server does not require one. The launcher loads the CSV data once after the tables are ready; its `--force` option clears and reloads the dataset.
 
 ## Data and schema notes
 

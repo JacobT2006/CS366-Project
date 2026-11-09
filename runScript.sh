@@ -88,6 +88,85 @@ os.execv(client, [
 '
 fi
 
+# Inspect project tables before offering to run the destructive DDL script.
+project_table_count=$("$python_bin" -c '
+from dotenv import load_dotenv
+load_dotenv()
+from load_data import PROJECT_TABLES, connect, existing_project_tables
+
+connection = connect()
+try:
+    print(len(existing_project_tables(connection)))
+finally:
+    connection.close()
+')
+project_table_total=10
+
+run_schema_sql() {
+    local sql_file="$1"
+    "$python_bin" -c '
+import os
+import shutil
+import subprocess
+import sys
+
+from dotenv import load_dotenv
+
+load_dotenv()
+client = shutil.which("mariadb")
+if client is None:
+    sys.exit("MariaDB CLI was not found. Install the MariaDB client and try again.")
+database = os.environ.get("DATABASE_NAME")
+username = os.environ.get("DATABASE_USERNAME")
+if not database or not username:
+    sys.exit("DATABASE_NAME and DATABASE_USERNAME must be set in .env.")
+password = os.environ.get("DATABASE_PASSWORD")
+if password:
+    os.environ["MYSQL_PWD"] = password
+with open(sys.argv[1], "rb") as source:
+    subprocess.run([
+        client,
+        "--host", os.environ.get("DATABASE_HOST", "140.146.23.39"),
+        "--port", os.environ.get("DATABASE_PORT", "3306"),
+        "--user", username,
+        database,
+    ], stdin=source, env=os.environ.copy(), check=True)
+' "$sql_file"
+}
+
+if [ "$project_table_count" -eq 0 ]; then
+    echo "No project tables found. Creating project tables..."
+    run_schema_sql InsertTables.sql
+    run_schema_sql stored_procedures.sql
+elif [ "$project_table_count" -eq "$project_table_total" ]; then
+    echo "Found all $project_table_total project tables."
+    read -r -p "Skip InsertTables.sql? [Y/n] " skip_schema
+    case "$skip_schema" in
+        ""|y|Y|yes|YES) echo "Skipping InsertTables.sql." ;;
+        n|N|no|NO)
+            read -r -p "Rebuilding drops and recreates project tables and deletes their data. Continue? [y/N] " rebuild_schema
+            case "$rebuild_schema" in
+                y|Y|yes|YES)
+                    run_schema_sql InsertTables.sql
+                    run_schema_sql stored_procedures.sql
+                    ;;
+                *) echo "Keeping existing project tables." ;;
+            esac
+            ;;
+        *) echo "Please answer yes or no." >&2; exit 2 ;;
+    esac
+else
+    echo "Found $project_table_count of $project_table_total project tables."
+    read -r -p "Rebuild all project tables? This drops existing project data. [y/N] " rebuild_schema
+    case "$rebuild_schema" in
+        y|Y|yes|YES)
+            run_schema_sql InsertTables.sql
+            run_schema_sql stored_procedures.sql
+            ;;
+        *) echo "Cannot continue with a partial schema; no tables were changed." >&2; exit 1 ;;
+    esac
+fi
+
 # Import data if needed, then start the interactive application.
 echo "Checking CSV data load..."
 "$python_bin" load_data.py
