@@ -1,6 +1,7 @@
-USE retailInfo_db;
+USE cs366-2267_toepferj14
 
 -- Drop in child-to-parent order so the script can be re-run
+-- Import marker prevents loading the large CSV dataset twice.
 DROP TABLE IF EXISTS dataset_imports;
 DROP TABLE IF EXISTS store_sales;
 DROP TABLE IF EXISTS year_financials;
@@ -12,21 +13,24 @@ DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS stores;
 DROP TABLE IF EXISTS categories;
 
+-- Product category lookup table.
 CREATE TABLE categories (
   category_id   VARCHAR(20) PRIMARY KEY,
   category_name VARCHAR(80) NOT NULL UNIQUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Store locations used by sales records.
 CREATE TABLE stores (
   store_id   VARCHAR(20) PRIMARY KEY,
-  store_name VARCHAR(100) NOT NULL UNIQUE,
+  store_name VARCHAR(100) NOT NULL,
   city       VARCHAR(60)  NOT NULL,
   country    VARCHAR(60)  NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Product catalog, including category and active status.
 CREATE TABLE products (
   product_id   VARCHAR(20) PRIMARY KEY,
-  product_name VARCHAR(120) NOT NULL UNIQUE,
+  product_name VARCHAR(120) NOT NULL,
   category_id  VARCHAR(20)  NOT NULL,
   launch_date  DATE NOT NULL,
   price        DECIMAL(10,2) NOT NULL,
@@ -35,6 +39,7 @@ CREATE TABLE products (
   CONSTRAINT fk_prod_cat FOREIGN KEY (category_id) REFERENCES categories(category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Sale header with date and store reference.
 CREATE TABLE sales (
   sale_id   VARCHAR(20) PRIMARY KEY,
   sale_date DATE NOT NULL,
@@ -43,6 +48,7 @@ CREATE TABLE sales (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Bridge table resolving the many-to-many between sales and products
+-- Product and quantity rows belonging to each sale.
 CREATE TABLE sale_items (
   sale_id    VARCHAR(20) NOT NULL,
   product_id VARCHAR(20) NOT NULL,
@@ -53,6 +59,7 @@ CREATE TABLE sale_items (
   CONSTRAINT fk_si_prod FOREIGN KEY (product_id) REFERENCES products(product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Warranty claims linked to the related sale and product.
 CREATE TABLE warranty_cases (
   claim_id      VARCHAR(20) PRIMARY KEY,
   sale_id       VARCHAR(20) NOT NULL,
@@ -65,6 +72,7 @@ CREATE TABLE warranty_cases (
     REFERENCES sale_items(sale_id, product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Annual Apple sales and earnings measures.
 CREATE TABLE year_sales (
   year               INT PRIMARY KEY,
   ebitda             DECIMAL(18,2),
@@ -79,6 +87,7 @@ CREATE TABLE year_sales (
   pe_ratio           DECIMAL(8,2)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Annual Apple assets, liabilities, cash, and employee counts.
 CREATE TABLE year_financials (
   year           INT PRIMARY KEY,
   total_assets   DECIMAL(18,2),
@@ -89,6 +98,7 @@ CREATE TABLE year_financials (
   CONSTRAINT fk_yf_year FOREIGN KEY (year) REFERENCES year_sales(year)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Optional precomputed store-level sales summary table.
 CREATE TABLE store_sales (
   store_id     VARCHAR(20) NOT NULL,
   year         INT NOT NULL,
@@ -99,6 +109,7 @@ CREATE TABLE store_sales (
   CONSTRAINT fk_ss_year  FOREIGN KEY (year)     REFERENCES year_sales(year)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Tracks imported dataset row counts to avoid accidental reloads.
 CREATE TABLE dataset_imports (
   dataset_name VARCHAR(50) PRIMARY KEY,
   row_count    BIGINT NOT NULL,

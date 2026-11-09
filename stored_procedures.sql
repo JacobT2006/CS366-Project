@@ -1,6 +1,6 @@
-USE retailInfo_db;
 DELIMITER //
 
+-- Search products with optional name, category, and active filters.
 DROP PROCEDURE IF EXISTS sp_search_products//
 CREATE PROCEDURE sp_search_products(
     IN p_search VARCHAR(100),
@@ -18,6 +18,7 @@ BEGIN
     ORDER BY p.product_name;
 END//
 
+-- Validate and save a sale header and its product line.
 DROP PROCEDURE IF EXISTS sp_record_sale//
 CREATE PROCEDURE sp_record_sale(
     IN p_sale_id VARCHAR(20),
@@ -54,6 +55,7 @@ BEGIN
     SELECT p_sale_id AS sale_id, p_product_id AS product_id, p_quantity AS quantity;
 END//
 
+-- Update a product price after validating the requested value.
 DROP PROCEDURE IF EXISTS sp_update_product_price//
 CREATE PROCEDURE sp_update_product_price(
     IN p_product_id VARCHAR(20),
@@ -71,6 +73,7 @@ BEGIN
     SELECT product_id, price FROM products WHERE product_id = p_product_id;
 END//
 
+-- Change product visibility without deleting referenced records.
 DROP PROCEDURE IF EXISTS sp_set_product_active//
 CREATE PROCEDURE sp_set_product_active(
     IN p_product_id VARCHAR(20),
@@ -88,6 +91,7 @@ BEGIN
     SELECT product_id, is_active FROM products WHERE product_id = p_product_id;
 END//
 
+-- Update a claim using one of the supported repair statuses.
 DROP PROCEDURE IF EXISTS sp_update_warranty_status//
 CREATE PROCEDURE sp_update_warranty_status(
     IN p_claim_id VARCHAR(20),
@@ -107,6 +111,7 @@ BEGIN
     WHERE claim_id = p_claim_id;
 END//
 
+-- Summarize sales for an optional store and year.
 DROP PROCEDURE IF EXISTS sp_store_sales_summary//
 CREATE PROCEDURE sp_store_sales_summary(
     IN p_store_id VARCHAR(20),

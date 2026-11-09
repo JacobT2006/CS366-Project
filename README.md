@@ -4,14 +4,18 @@ This project is a working MariaDB-backed application for the Apple retail datase
 
 ## Project files
 
-- `createDB.sql` — creates `retailInfo_db` and the local application account.
-- `InsertTables.sql` — creates the relational tables and their constraints.
-- `load_data.py` — imports all six CSV datasets under `apple_db/`.
-- `queries.sql` — ten Level 2/3 application reports, with descriptions and uses.
-- `stored_procedures.sql` — product search, sale entry, updates, and store reporting procedures.
-- `backEnd.py`, `frontEnd.py` — database operations and interactive terminal interface.
-- `tests/` — database-independent parser and query-catalog tests.
-- `runScript.sh` — selects the project Python environment and runs the app.
+- `backEnd.py` — connects to the database and runs operations.
+- `frontEnd.py` — provides the interactive menu.
+- `InsertTables.sql` — creates the database tables.
+- `LICENSE` — states the project's MIT license terms.
+- `load_data.py` — imports CSV data into the database.
+- `queries.sql` — contains the SQL reports.
+- `query_catalog.py` — reads report definitions from `queries.sql`.
+- `README.md` — explains setup and project usage.
+- `requirements.txt` — lists Python dependencies.
+- `runScript.sh` — configures and launches the app.
+- `stored_procedures.sql` — defines database procedures for app operations.
+- `updateProject.sh` — updates the checkout from GitHub.
 
 ## Requirements and setup (WSL/Ubuntu)
 
@@ -29,7 +33,7 @@ cp .env.example .env
 ./runScript.sh
 ```
 
-The project requires Python 3.8 or newer and MariaDB Connector/Python. The launcher automatically uses `.venv/bin/python` when present, so activating the environment is optional. Configure `.env` with a reachable MariaDB database that already has this project's schema, stored procedures, and data. The launcher does not start, stop, or configure a database server.
+The project requires Python 3.8 or newer and MariaDB Connector/Python. The launcher automatically uses `.venv/bin/python` when present, so activating the environment is optional. Set `DATABASE_NAME` to the schema provided for your account and ensure `DATABASE_USERNAME` has access to it. Run `InsertTables.sql` and `stored_procedures.sql` against that schema before launching the app.
 
 The dataset includes 1,040,200 sales, 30,000 warranty claims, 89 products, 75 stores, 10 categories, and 16 years of Apple financial data. The annual financial CSV reports monetary values in millions; the loader preserves those source units.
 
@@ -38,10 +42,14 @@ The dataset includes 1,040,200 sales, 30,000 warranty claims, 89 products, 75 st
 ```bash
 ./runScript.sh               # Run the app using the configured database
 ./runScript.sh --update      # Pull project changes, then run the app
+./runScript.sh --db          # Open the MariaDB CLI using .env connection settings
 python load_data.py          # Load CSV data into a prepared, empty schema
 python load_data.py --force  # Clear and reload the CSV data
+python load_data.py --sql-out apple_db_import.sql  # Export CSV inserts without connecting
 python -m unittest discover -s tests
 ```
+
+The `--sql-out` mode reads and validates the CSVs locally without connecting to a database. It generates batched `INSERT` statements for use after running `InsertTables.sql`; executing the generated SQL still requires a MariaDB database.
 
 For the checkpoint submission, create your own Word or PDF document. Copy the schema from `InsertTables.sql`, the ten annotated queries from `queries.sql`, and the procedures from `stored_procedures.sql`. Run each query and procedure in MariaDB to collect real result samples. Capture the running menu and result tables for interface evidence. Before adding secondary indexes for Checkpoint 4, run `EXPLAIN` on at least five queries and record their runtimes and plans. Add group member names and team-specific management updates.
 
@@ -56,7 +64,7 @@ For the checkpoint submission, create your own Word or PDF document. Copy the sc
 7. Update a warranty claim status.
 8. View a store/year sales summary.
 
-Copy `.env.example` to `.env` and enter the database connection settings there. The `.env` file is ignored by Git. Use the remote server's reachable hostname/IP and port, and ensure its network rules and database grants allow the client. Leave `DATABASE_PASSWORD` empty if the server does not require one. The remote database must already contain this project's schema, stored procedures, and data; the application connects to it and runs its normal reports and operations. The sample credentials in `createDB.sql` are for coursework use only; change them before exposing the database to a network.
+Copy `.env.example` to `.env` and enter the database host, port, name, username, and password. The `.env` file is ignored by Git. Use the remote server's reachable hostname/IP and port, and ensure its network rules and database grants allow the client. Leave `DATABASE_PASSWORD` empty if the server does not require one. The remote database must already contain this project's schema, stored procedures, and data; the application connects to it and runs its normal reports and operations. The sample credentials in `createDB.sql` are for coursework use only; change them before exposing the database to a network.
 
 ## Data and schema notes
 
@@ -69,7 +77,7 @@ The schema includes primary and foreign keys, uniqueness and not-null constraint
 Build the PDF or Word document yourself and include:
 
 1. `InsertTables.sql`, one successful `SELECT COUNT(*) FROM sales`, plus a duplicate product ID or invalid category insert showing a database constraint error.
-2. All ten queries from `queries.sql`, with each query's included level, description, usefulness, and an actual result sample. Connect in WSL with `mariadb --host=127.0.0.1 --port=3307 --user=retail_app --password retailInfo_db`.
+2. All ten queries from `queries.sql`, with each query's included level, description, usefulness, and an actual result sample. Connect with `mariadb --host=140.146.23.39 --port=3306 --user=toepferj14 --password cs366-2267_toepferj14` (replace the username and schema with your `.env` values).
 3. At least five procedures from `stored_procedures.sql`. Try `CALL sp_search_products('Mac', NULL, 1);` and `CALL sp_store_sales_summary(NULL, NULL);` for read-only examples. For write examples, use disposable test rows and restore any modified values after evidence capture.
 
 | Procedure | Purpose and inputs | Expected result |

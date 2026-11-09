@@ -1,3 +1,4 @@
+-- Each query header describes its level, purpose, and business use.
 -- Query: Q01 | Level: Level 2 | Title: Revenue by product category
 -- Description: Calculates units sold, revenue, and distinct sales for every category.
 -- Useful for: Comparing category demand and revenue to guide inventory and promotions.

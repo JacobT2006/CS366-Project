@@ -19,6 +19,7 @@ QUERY_MARKER = re.compile(r"(?m)^-- Query: Q\d+ \| Level: Level [23] \| Title: "
 
 @dataclass(frozen=True)
 class QueryDefinition:
+    """Metadata and SQL text for one report."""
     query_id: str
     level: str
     title: str
@@ -28,6 +29,7 @@ class QueryDefinition:
 
 
 def load_queries(path: Path | None = None) -> tuple[QueryDefinition, ...]:
+    """Parse and validate the ten documented reports."""
     source_path = path or ROOT / "queries.sql"
     source = source_path.read_text(encoding="utf-8")
     definitions: list[QueryDefinition] = []

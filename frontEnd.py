@@ -26,18 +26,19 @@ from backEnd import (
 
 # Connection settings live in the untracked .env file; see .env.example.
 load_dotenv()
-DATABASE_HOST = os.getenv("DATABASE_HOST", "127.0.0.1")
-DATABASE_PORT = int(os.getenv("DATABASE_PORT", "3307"))
-DATABASE_NAME = os.getenv("DATABASE_NAME", "retailInfo_db")
+DATABASE_HOST = os.getenv("DATABASE_HOST", "140.146.23.39")
+DATABASE_PORT = int(os.getenv("DATABASE_PORT", "3306"))
+DATABASE_NAME = os.getenv("DATABASE_NAME", "")
 DATABASE_USERNAME = os.getenv("DATABASE_USERNAME", "")
-DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
 
 
 def prompt(label: str) -> str:
+    """Read and trim one menu response."""
     return input(f"{label}: ").strip()
 
 
 def prompt_required(label: str) -> str:
+    """Read a required value or reject an empty response."""
     value = prompt(label)
     if not value:
         raise ValueError(f"{label} is required.")
@@ -45,6 +46,7 @@ def prompt_required(label: str) -> str:
 
 
 def prompt_price(label: str = "Price") -> str:
+    """Read a nonnegative price and format it to two decimal places."""
     raw = prompt_required(label)
     try:
         amount = Decimal(raw)
@@ -56,6 +58,7 @@ def prompt_price(label: str = "Price") -> str:
 
 
 def prompt_date(label: str) -> str:
+    """Read a valid ISO date."""
     raw = prompt_required(label)
     try:
         return date.fromisoformat(raw).isoformat()
@@ -64,6 +67,7 @@ def prompt_date(label: str) -> str:
 
 
 def print_table(columns: Sequence[str], rows: Sequence[Sequence[Any]]) -> None:
+    """Print result rows in a compact, fixed-width table."""
     if not rows:
         print("No matching records.")
         return
@@ -85,10 +89,12 @@ def print_table(columns: Sequence[str], rows: Sequence[Sequence[Any]]) -> None:
 def show_results(
     result: tuple[tuple[str, ...], list[tuple[Any, ...]]],
 ) -> None:
+    """Display a columns-and-rows result."""
     print_table(*result)
 
 
 def search_menu(connection: Any) -> None:
+    """Collect search filters and display matching products."""
     search = prompt("Product name contains (blank for all)") or None
     categories = get_categories(connection)
     print_table(("Category ID", "Category"), categories)
@@ -101,6 +107,7 @@ def search_menu(connection: Any) -> None:
 
 
 def add_product_menu(connection: Any) -> None:
+    """Collect product details and insert a product."""
     print_table(("Category ID", "Category"), get_categories(connection))
     add_product(
         connection,
@@ -114,6 +121,7 @@ def add_product_menu(connection: Any) -> None:
 
 
 def record_sale_menu(connection: Any) -> None:
+    """Collect sale details and record the sale."""
     print_table(("Store ID", "Store"), get_stores(connection))
     show_results(
         record_sale(
@@ -129,6 +137,7 @@ def record_sale_menu(connection: Any) -> None:
 
 
 def product_price_menu(connection: Any) -> None:
+    """Collect a product ID and its replacement price."""
     show_results(
         update_product_price(
             connection,
@@ -140,6 +149,7 @@ def product_price_menu(connection: Any) -> None:
 
 
 def product_status_menu(connection: Any) -> None:
+    """Ask whether to activate or deactivate a product."""
     product_id = prompt_required("Product ID")
     choice = prompt("Deactivate this product? [y/N]").lower()
     if choice not in ("y", "yes", "n", "no", ""):
@@ -150,6 +160,7 @@ def product_status_menu(connection: Any) -> None:
 
 
 def warranty_status_menu(connection: Any) -> None:
+    """Collect a claim ID and update its repair status."""
     print("Allowed statuses: Pending, In Progress, Completed, Rejected")
     show_results(
         update_warranty_status(
@@ -162,6 +173,7 @@ def warranty_status_menu(connection: Any) -> None:
 
 
 def report_menu(connection: Any) -> None:
+    """Select and display one documented SQL report."""
     queries = get_queries()
     for query in queries:
         print(f"{query.query_id} [{query.level}] {query.title}")
@@ -176,6 +188,7 @@ def report_menu(connection: Any) -> None:
 
 
 def store_summary_menu(connection: Any) -> None:
+    """Collect optional store and year filters for a sales summary."""
     store_id = prompt("Store ID (blank for all stores)") or None
     year_text = prompt("Year (blank for all years)")
     try:
@@ -199,6 +212,7 @@ MENU = (
 
 
 def run_menu(connection: Any, database_error: type[Exception]) -> None:
+    """Run the menu loop and handle input or database errors."""
     actions = {
         "1": search_menu,
         "2": report_menu,
@@ -229,6 +243,7 @@ def run_menu(connection: Any, database_error: type[Exception]) -> None:
 
 
 def main() -> int:
+    """Connect to MariaDB, start the menu, and close the connection."""
     try:
         import mariadb
     except ImportError:
@@ -247,7 +262,6 @@ def main() -> int:
             port=DATABASE_PORT,
             database=DATABASE_NAME,
             user=DATABASE_USERNAME,
-            password=DATABASE_PASSWORD,
         )
     except mariadb.Error as error:
         print(f"Could not connect to MariaDB: {error}")

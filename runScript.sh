@@ -1,31 +1,37 @@
 #!/usr/bin/env bash
 # ./runScript.sh              Check prerequisites and run the app.
 # ./runScript.sh --update     Pull the latest project changes before starting.
+# ./runScript.sh --db         Open the MariaDB CLI with settings from .env.
 
 set -euo pipefail
 
+# Run every command from the repository root.
 cd "$(dirname "$0")"
 update=0
+open_db=0
 
+# Read supported command-line options.
 for argument in "$@"; do
     case "$argument" in
         --update) update=1 ;;
+        --db) open_db=1 ;;
         --help|-h)
-            sed -n '2,3p' "$0"
+            sed -n '2,4p' "$0"
             exit 0
             ;;
         *)
             echo "Unknown option: $argument" >&2
-            echo "Usage: ./runScript.sh [--update]" >&2
+            echo "Usage: ./runScript.sh [--update] [--db]" >&2
             exit 2
             ;;
     esac
 done
 
+# Prefer the project's virtual environment when it exists.
 if [ -x "$PWD/.venv/bin/python" ]; then
     python_bin="$PWD/.venv/bin/python"
 else
-    python_bin=$(find_bin python3) || {
+    python_bin=$(command -v python3) || {
         echo "Python 3.8 or newer was not found. Please install it and try again." >&2
         exit 1
     }
@@ -35,11 +41,13 @@ if ! "$python_bin" -c 'import sys; sys.exit(sys.version_info < (3, 8))'; then
     exit 1
 fi
 echo "$("$python_bin" --version) is installed"
+# Require both the SQL connector and .env reader before continuing.
 if ! "$python_bin" -c 'import mariadb, dotenv' >/dev/null 2>&1; then
     echo "Project dependencies are missing. Run: python3 -m pip install -r requirements.txt" >&2
     exit 1
 fi
 
+# Optionally synchronize this checkout before database work.
 if [ "$update" -eq 1 ]; then
     if [ ! -f updateProject.sh ]; then
         echo "updateProject.sh was not found." >&2
@@ -48,4 +56,39 @@ if [ "$update" -eq 1 ]; then
     bash ./updateProject.sh
 fi
 
+# Optionally open a MariaDB CLI session with the private .env settings.
+if [ "$open_db" -eq 1 ]; then
+    exec "$python_bin" -c '
+import os
+import shutil
+import sys
+
+from dotenv import load_dotenv
+
+load_dotenv()
+client = shutil.which("mariadb")
+if client is None:
+    sys.exit("MariaDB CLI was not found. Install the MariaDB client and try again.")
+username = os.environ.get("DATABASE_USERNAME")
+if not username:
+    sys.exit("DATABASE_USERNAME is missing from .env.")
+database = os.environ.get("DATABASE_NAME")
+if not database:
+    sys.exit("DATABASE_NAME is missing from .env.")
+password = os.environ.get("DATABASE_PASSWORD")
+if password:
+    os.environ["MYSQL_PWD"] = password
+os.execv(client, [
+    client,
+    "--host", os.environ.get("DATABASE_HOST", "140.146.23.39"),
+    "--port", os.environ.get("DATABASE_PORT", "3306"),
+    "--user", username,
+    database,
+])
+'
+fi
+
+# Import data if needed, then start the interactive application.
+echo "Checking CSV data load..."
+"$python_bin" load_data.py
 exec "$python_bin" frontEnd.py

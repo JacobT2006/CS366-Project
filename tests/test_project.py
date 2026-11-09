@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from io import StringIO
 import unittest
 from decimal import Decimal
 
@@ -11,11 +12,23 @@ from load_data import (
     parse_integer,
     parse_product,
     parse_sale,
+    write_sql_inserts,
 )
 from query_catalog import load_queries
 
 
 class CsvParsingTests(unittest.TestCase):
+    def test_sql_export_quotes_text_and_preserves_numbers(self) -> None:
+        output = StringIO()
+        count = write_sql_inserts(
+            output,
+            "categories",
+            ("category_id", "category_name", "price"),
+            [("CAT-1", "Men's wear", Decimal("12.50"))],
+        )
+        self.assertEqual(count, 1)
+        self.assertIn("('CAT-1', 'Men''s wear', 12.50);", output.getvalue())
+
     def test_supplied_dataset_keys_and_relationships(self) -> None:
         category_ids = {row["category_id"] for row in read_csv("category.csv")}
         store_ids = {row["Store_ID"] for row in read_csv("stores.csv")}

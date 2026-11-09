@@ -1,2 +1,2 @@
-mariadb>=1.1.10,<2.0
-python-dotenv>=1.0,<2.0
+mariadb>=1.1.10,<2.0  # MariaDB database connector
+python-dotenv>=1.0,<2.0  # Read local connection settings from .env

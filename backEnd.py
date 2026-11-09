@@ -13,6 +13,7 @@ def connect(
     database: str | None = None, user: str | None = None,
     password: str | None = None,
 ) -> Any:
+    """Open a MariaDB connection using explicit settings or environment values."""
     try:
         import mariadb
     except ImportError as error:
@@ -22,14 +23,14 @@ def connect(
 
     connection_options: dict[str, Any] = {
         "user": user if user is not None else os.environ.get("DATABASE_USERNAME", ""),
-        "database": database if database is not None else os.environ.get("DATABASE_NAME", "retailInfo_db"),
+        "database": database if database is not None else os.environ.get("DATABASE_NAME", ""),
         "connect_timeout": 10,
     }
     selected_password = password if password is not None else os.environ.get("DATABASE_PASSWORD")
     if selected_password:
         connection_options["password"] = selected_password
-    connection_options["host"] = host or os.environ.get("DATABASE_HOST", "127.0.0.1")
-    connection_options["port"] = port if port is not None else int(os.environ.get("DATABASE_PORT", "3307"))
+    connection_options["host"] = host or os.environ.get("DATABASE_HOST", "140.146.23.39")
+    connection_options["port"] = port if port is not None else int(os.environ.get("DATABASE_PORT", "3306"))
     return mariadb.connect(**connection_options)
 
 
@@ -38,6 +39,7 @@ def _call(
     procedure: str,
     parameters: tuple[Any, ...],
 ) -> tuple[tuple[str, ...], list[tuple[Any, ...]]]:
+    """Call a stored procedure and return its final result set."""
     cursor = connection.cursor()
     try:
         placeholders = ", ".join("?" for _ in parameters)
@@ -65,6 +67,7 @@ def search_products(
     category_id: str | None,
     active: bool | None,
 ) -> tuple[tuple[str, ...], list[tuple[Any, ...]]]:
+    """Search products using optional name, category, and status filters."""
     return _call(
         connection,
         "sp_search_products",
@@ -80,6 +83,7 @@ def add_product(
     launch_date: str,
     price: str,
 ) -> None:
+    """Insert a new active product."""
     cursor = connection.cursor()
     try:
         cursor.execute(
@@ -104,6 +108,7 @@ def record_sale(
     product_id: str,
     quantity: int,
 ) -> tuple[tuple[str, ...], list[tuple[Any, ...]]]:
+    """Record a sale through the database validation procedure."""
     return _call(
         connection,
         "sp_record_sale",
@@ -116,6 +121,7 @@ def update_product_price(
     product_id: str,
     new_price: str,
 ) -> tuple[tuple[str, ...], list[tuple[Any, ...]]]:
+    """Change a product's price."""
     return _call(connection, "sp_update_product_price", (product_id, new_price))
 
 
@@ -124,6 +130,7 @@ def set_product_active(
     product_id: str,
     active: bool,
 ) -> tuple[tuple[str, ...], list[tuple[Any, ...]]]:
+    """Activate or deactivate a product."""
     return _call(connection, "sp_set_product_active", (product_id, int(active)))
 
 
@@ -132,6 +139,7 @@ def update_warranty_status(
     claim_id: str,
     status: str,
 ) -> tuple[tuple[str, ...], list[tuple[Any, ...]]]:
+    """Change a warranty claim's status."""
     return _call(connection, "sp_update_warranty_status", (claim_id, status))
 
 
@@ -140,6 +148,7 @@ def store_sales_summary(
     store_id: str | None,
     year: int | None,
 ) -> tuple[tuple[str, ...], list[tuple[Any, ...]]]:
+    """Return sales totals for an optional store and year."""
     return _call(connection, "sp_store_sales_summary", (store_id or None, year))
 
 
@@ -148,6 +157,7 @@ def run_query(
     query: QueryDefinition,
     row_limit: int = 25,
 ) -> tuple[tuple[str, ...], list[tuple[Any, ...]], bool]:
+    """Run a report and return up to row_limit rows plus a more-results flag."""
     cursor = connection.cursor()
     try:
         cursor.execute(query.sql)
@@ -160,6 +170,7 @@ def run_query(
 
 
 def get_categories(connection: Any) -> list[tuple[str, str]]:
+    """Return category IDs and names for menu choices."""
     cursor = connection.cursor()
     try:
         cursor.execute("SELECT category_id, category_name FROM categories ORDER BY category_id")
@@ -169,6 +180,7 @@ def get_categories(connection: Any) -> list[tuple[str, str]]:
 
 
 def get_stores(connection: Any) -> list[tuple[str, str]]:
+    """Return store IDs and names for menu choices."""
     cursor = connection.cursor()
     try:
         cursor.execute("SELECT store_id, store_name FROM stores ORDER BY store_id")
@@ -178,4 +190,5 @@ def get_stores(connection: Any) -> list[tuple[str, str]]:
 
 
 def get_queries() -> tuple[QueryDefinition, ...]:
+    """Load the documented report catalog from queries.sql."""
     return load_queries()
