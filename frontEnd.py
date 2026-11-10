@@ -23,6 +23,7 @@ from backEnd import (
     update_product_price,
     update_warranty_status,
 )
+from load_data import clear_dataset
 
 # Connection settings live in the untracked .env file; see .env.example.
 load_dotenv()
@@ -183,6 +184,22 @@ def report_menu(connection: Any) -> None:
         raise ValueError("Choose one of the listed query IDs.")
     columns, rows, has_more = run_query(connection, selected)
     print_table(columns, rows)
+
+
+def clear_data_menu(connection: Any) -> bool:
+    """Clear project rows only after an exact destructive-action confirmation."""
+    confirmation = prompt("This clears all project data. Type CLEAR to confirm")
+    if confirmation != "CLEAR":
+        print("Clear cancelled; project data is unchanged.")
+        return False
+
+    cursor = connection.cursor()
+    try:
+        clear_dataset(cursor, connection)
+    finally:
+        cursor.close()
+    print("Project data cleared. Tables remain in place.")
+    return True
     if has_more:
         print("Showing the first 25 rows. The query returned additional results.")
 
@@ -208,6 +225,7 @@ MENU = (
     "7. Modify a warranty claim",
     "8. View store sales summary",
     "0. Exit",
+    "999. Clear project data and exit",
 )
 
 
@@ -229,6 +247,14 @@ def run_menu(connection: Any, database_error: type[Exception]) -> None:
         choice = prompt("Select an option")
         if choice == "0":
             return
+        if choice == "999":
+            try:
+                if clear_data_menu(connection):
+                    return
+            except database_error as error:
+                connection.rollback()
+                print(f"Database error: {error}")
+            continue
         action = actions.get(choice)
         if action is None:
             print("Choose a listed menu option.")

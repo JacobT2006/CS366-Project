@@ -3,7 +3,9 @@ from __future__ import annotations
 from io import StringIO
 import unittest
 from decimal import Decimal
+from unittest.mock import Mock, patch
 
+from frontEnd import clear_data_menu
 from load_data import (
     read_csv,
     parse_date,
@@ -140,6 +142,28 @@ class QueryCatalogTests(unittest.TestCase):
         self.assertEqual([query.query_id for query in queries], [f"Q{i:02}" for i in range(1, 11)])
         self.assertTrue(all(query.level in {"Level 2", "Level 3"} for query in queries))
         self.assertTrue(all("JOIN" in query.sql.upper() for query in queries))
+
+
+class DestructiveExitTests(unittest.TestCase):
+    def test_clear_requires_exact_confirmation(self) -> None:
+        connection = Mock()
+        with patch("frontEnd.prompt", return_value="clear"), patch(
+            "frontEnd.clear_dataset"
+        ) as clear_dataset_mock:
+            self.assertFalse(clear_data_menu(connection))
+
+        connection.cursor.assert_not_called()
+        clear_dataset_mock.assert_not_called()
+
+    def test_clear_runs_after_exact_confirmation(self) -> None:
+        connection = Mock()
+        with patch("frontEnd.prompt", return_value="CLEAR"), patch(
+            "frontEnd.clear_dataset"
+        ) as clear_dataset_mock:
+            self.assertTrue(clear_data_menu(connection))
+
+        clear_dataset_mock.assert_called_once_with(connection.cursor.return_value, connection)
+        connection.cursor.return_value.close.assert_called_once()
 
 
 if __name__ == "__main__":
