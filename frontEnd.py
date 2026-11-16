@@ -32,6 +32,20 @@ DATABASE_PORT = int(os.getenv("DATABASE_PORT", "3306"))
 DATABASE_NAME = os.getenv("DATABASE_NAME", "")
 DATABASE_USERNAME = os.getenv("DATABASE_USERNAME", "")
 
+# For droping data and starting over
+PROJECT_TABLES = (
+    "dataset_imports",
+    "store_sales",
+    "year_financials",
+    "year_sales",
+    "warranty_cases",
+    "sale_items",
+    "sales",
+    "products",
+    "stores",
+    "categories",
+)
+
 
 def prompt(label: str) -> str:
     """Read and trim one menu response."""
@@ -186,22 +200,34 @@ def report_menu(connection: Any) -> None:
     print_table(columns, rows)
 
 
+def drop_project_tables(cursor: Any, connection: Any) -> None:
+    """Drop every project table. Table names come from a fixed list, never user input."""
+    try:
+        for table in PROJECT_TABLES:
+            cursor.execute(f"DROP TABLE IF EXISTS {table}")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
 def clear_data_menu(connection: Any) -> bool:
-    """Clear project rows only after an exact destructive-action confirmation."""
-    confirmation = prompt("This clears all project data. Type CLEAR to confirm")
-    if confirmation != "CLEAR":
-        print("Clear cancelled; project data is unchanged.")
+    """Delete all project data and tables only after an exact destructive-action confirmation."""
+    confirmation = prompt(
+        "This permanently deletes all project data AND the tables themselves. "
+        "Type DROP to confirm"
+    )
+    if confirmation != "DROP":
+        print("Cancelled; project data and tables are unchanged.")
         return False
 
     cursor = connection.cursor()
     try:
-        clear_dataset(cursor, connection)
+        drop_project_tables(cursor, connection)
     finally:
         cursor.close()
-    print("Project data cleared. Tables remain in place.")
+    print("Project data and tables removed.")
     return True
-    if has_more:
-        print("Showing the first 25 rows. The query returned additional results.")
 
 
 def store_summary_menu(connection: Any) -> None:
